@@ -1,0 +1,75 @@
+#! /usr/bin/env python3
+
+import sys
+from os import path
+#import click
+from secrets import randbelow
+
+ARG_COUNT = len(sys.argv)
+DEFAULT_RAND_STR_LEN = 24
+DEFAULT_DISALLOW_LIST = ['"', "'", '`', '$', '\\', '<']
+NULL_DISALLOW_LIST = []
+
+
+rand_str_len = DEFAULT_RAND_STR_LEN
+disallow_list = DEFAULT_DISALLOW_LIST
+
+
+first_arg = False
+second_arg = False
+
+def print_help():
+    global DEFAULT_DISALLOW_LIST
+    command_name = path.basename(__file__)
+    default_disallow_str = ', '.join(set(DEFAULT_DISALLOW_LIST))
+    print(f"""
+Generates a random string in the lower ASCII range of 33-126. Default length is 24 characters.
+
+Usage: {command_name} NUM_CHAR [DISALLOWED_CHARS]
+
+Characters disallowed by default are: {default_disallow_str}
+    """)
+
+
+def str_to_unique_char_list(string):
+    return ''.join(set(string))
+
+def gen_random_str(rand_str_len, disallow_list):
+    output = ''
+    i = 0
+    while i < rand_str_len:
+        ascii_val = randbelow(94) + 33
+
+        # This should never happen, but if it does, fail noticably.
+        if ascii_val > 126 or ascii_val < 33:
+            assert(False, 'ASCII value out of range of acceptable characters.')
+            print_help()
+            exit(1)
+
+        newchar = chr(ascii_val)
+        if not newchar in disallow_list:
+            output = output + newchar
+            i += 1
+    return output
+
+# Start procedural code
+
+if ARG_COUNT == 2:
+    first_arg = sys.argv[1]
+    if not first_arg.isnumeric():
+        disallow_list = str_to_unique_char_list(first_arg)
+    elif first_arg.isnumeric():
+        rand_str_len = int(first_arg)
+elif ARG_COUNT > 2:
+    first_arg = sys.argv[1]
+    second_arg = sys.argv[2]
+    if not first_arg.isnumeric():
+        assert(False, "Length must be numeric.")
+        print_help()
+        exit(1)
+    rand_str_len = int(first_arg)
+    disallow_list = str_to_unique_char_list(second_arg)
+
+
+print(gen_random_str(rand_str_len, disallow_list))
+exit(0)
