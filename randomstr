@@ -13,12 +13,20 @@ NULL_DISALLOW_LIST = []
 MAX_RAND_STR_LEN = 65536
 
 
+"""
+`randomstr` Help:
+Generates a random string in the lower ASCII range of 33-126. Default length is 24 characters.
+
+Usage: randomstr [str_len] [--no <string of disallowed characters>]
+
+Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
+"""
 #@click.option("--length-range", nargs=2, type=click.Tuple([int, int]), default=click.Tuple([DEFAULT_RAND_STR_LEN, DEFAULT_RAND_STR_LEN]))
 #def randomstr(rand_str_len, disallow_list, length_range):
 @click.command()
 @click.argument("rand_str_len", default=DEFAULT_RAND_STR_LEN)
-@click.option("--no", default=DEFAULT_DISALLOW_LIST)
-@click.option("--also-no", default="")
+@click.option("--no", default=DEFAULT_DISALLOW_LIST, help="Overrides the default list of disallowed characters. Pass an empty argument to use all available characters.")
+@click.option("--also-no", default="", help="Adds characters to the disallow list without overwriting the existing disallow list. Useful for when characters need to be added to the default disallow list.")
 def randomstr(rand_str_len, no, also_no):
     if rand_str_len < 1:
         print(f"The minimum allowed string length is 1.")
@@ -32,20 +40,6 @@ def randomstr(rand_str_len, no, also_no):
     disallow_list = str_to_unique_char_list(no + also_no)
     print(gen_random_str(rand_str_len, disallow_list))
     exit(0)
-
-
-def print_help():
-    global DEFAULT_DISALLOW_LIST
-    command_name = path.basename(__file__)
-    default_disallow_str = ', '.join(set(DEFAULT_DISALLOW_LIST))
-    print(f"""
-        `randomstr` Help:
-        Generates a random string in the lower ASCII range of 33-126. Default length is 24 characters.
-
-        Usage: randomstr [str_len] [--no <string of disallowed characters>]
-
-        Characters disallowed by default are: {default_disallow_str}
-    """)
 
 
 def str_to_unique_char_list(string):
