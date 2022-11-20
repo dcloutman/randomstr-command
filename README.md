@@ -16,4 +16,4 @@ A standard list of commonly forbidden characters in passwords is included in the
 
 If you need to add additional characters to the default disallow list, use the `--also-no` option and pass a string of characters you wish to disallow. These characters will be added to the disallow list.
 
-No password will give you 100% protection against brute force attacks, but it is hoped that this utility will improve the probability of not having your secured accounts hacked through social engineering, guessing, and brute force attacks.
+No password will give you 100% protection against brute force attacks, but it is hoped that this utility will improve the probability of not having your secured accougtnts hacked through social engineering, guessing, and brute force attacks.
