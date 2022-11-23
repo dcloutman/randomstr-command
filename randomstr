@@ -27,11 +27,21 @@ Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
 @click.argument("rand_str_len", default=DEFAULT_RAND_STR_LEN)
 @click.option("--no", default=DEFAULT_DISALLOW_LIST, help="Overrides the default list of disallowed characters. Pass an empty argument to use all available characters.")
 @click.option("--also-no", default="", help="Adds characters to the disallow list without overwriting the existing disallow list. Useful for when characters need to be added to the default disallow list.")
-def randomstr(rand_str_len, no, also_no):
+@click.option("--min-length", default=24)
+@click.option("--max-length", default=24)
+def randomstr(rand_str_len, no, also_no, min_length, max_length):
     if rand_str_len < 1:
         print(f"The minimum allowed string length is 1.")
         exit(1)
     
+    if min_length != rand_str_len or max_length != rand_str_len:
+        if min_length > max_length:
+            print("Minimum string length must be less than or equal to maximum string length.")
+            exit(1)
+        else:
+            rand_str_len = randbelow((max_length - min_length) + 1) + min_length
+            print(('-' * (min_length - 1)) + ('=' * ((max_length - min_length) + 1)))
+
     # Catch excessive string lengths to avoid abuse of the utility.
     if rand_str_len > MAX_RAND_STR_LEN:
         print(f"The maximum allowed string length is {MAX_RAND_STR_LEN} characters.")
