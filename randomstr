@@ -11,7 +11,7 @@ DEFAULT_RAND_STR_LEN = 24
 DEFAULT_DISALLOW_LIST = ['"', "'", '`', '$', '\\', '<']
 NULL_DISALLOW_LIST = []
 MAX_RAND_STR_LEN = 65536
-
+MAX_DIVERSE_STRING_ATTEMPTS = 2048
 
 """
 `randomstr` Help:
@@ -24,18 +24,22 @@ Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
 
 @click.command()
 @click.argument("rand_str_len", default=DEFAULT_RAND_STR_LEN)
+@click.option("--enforce-diversity", "-d", is_flag=True, default=False, help="Generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.")
 @click.option("--no", default=DEFAULT_DISALLOW_LIST, help="Overrides the default list of disallowed characters. Pass an empty argument to use all available characters.")
 @click.option("--also-no", default="", help="Adds characters to the disallow list without overwriting the existing disallow list. Useful for when characters need to be added to the default disallow list.")
-@click.option("--min-length", default=24, help=f"Minimum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
-@click.option("--max-length", default=24, help=f"Maximum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
+@click.option("--min-length", "-n", default=24, help=f"Minimum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
+@click.option("--max-length", "-x", default=24, help=f"Maximum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
 @click.option("--ruler", is_flag=True, default=False, help="Display a visual guide illustrating minimum and maximum lengths above the generated string.")
-def randomstr(rand_str_len, no, also_no, min_length, max_length, ruler):
-    if rand_str_len < 1:
-        print(f"The minimum allowed string length is 1.")
+def randomstr(rand_str_len, enforce_diversity, no, also_no, min_length, max_length, ruler):
+    if (enforce_diversity and rand_str_len < 4) or min_length < 4 or max_length < 4:
+        print(f"The minimum string length for diversified strings is 4.")
+        exit(1)
+    elif rand_str_len < 1:
+        print(f"The minimum string length is 1.")
         exit(1)
     if min_length != DEFAULT_RAND_STR_LEN or max_length != DEFAULT_RAND_STR_LEN:
         if min_length > max_length:
-            print("Minimum string length must be less than or equal to maximum string length.")
+            print("The minimum string length must be less than or equal to maximum string length.")
             exit(1)
         else:
             rand_str_len = randbelow((max_length - min_length) + 1) + min_length
@@ -51,7 +55,12 @@ def randomstr(rand_str_len, no, also_no, min_length, max_length, ruler):
         exit(1)
 
     disallow_list = str_to_unique_char_list(no + also_no)
-    print(gen_random_str(rand_str_len, disallow_list))
+
+    if enforce_diversity:
+        print(gen_random_diverse_str(rand_str_len, disallow_list))
+    else:
+        print(gen_random_str(rand_str_len, disallow_list))
+
     exit(0)
 
 
@@ -81,6 +90,52 @@ def gen_random_str(rand_str_len, disallow_list):
             output = output + newchar
             i += 1
     return output
+
+
+def gen_random_diverse_str(rand_str_len, disallow_list):
+    """
+    Generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.
+    """
+    attempts = 0
+    while attempts < MAX_DIVERSE_STRING_ATTEMPTS:
+        output = ''
+        i = 0
+        has_number = False
+        has_lower = False
+        has_upper = False
+        has_special = False
+
+        while i < rand_str_len:
+            ascii_val = randbelow(94) + 33
+
+            # This should never happen, but if it does, fail noticably.
+            if ascii_val > 126 or ascii_val < 33:
+                raise Exception('Generated ASCII value out of range of acceptable characters.')
+                exit(1)
+
+            newchar = chr(ascii_val)
+            if not newchar in disallow_list:
+                output = output + newchar
+                i += 1
+
+                if ascii_val >= 65 and ascii_val <= 90:
+                    has_upper = True
+                elif ascii_val >= 97 and ascii_val <= 122:
+                    has_lower = True                
+                elif ascii_val >= 48 and ascii_val <= 57:
+                    has_number = True
+                else:
+                    has_special = True
+
+        if has_lower and has_upper and has_number and has_special:
+            return output
+    # end while
+
+    print("The application failed to generate a diverse password. Verify that your disallow list is not too restrictive and try again.")
+    exit(1) 
+
+
+
 
 def print_ruler(min_length, max_length):
     """
