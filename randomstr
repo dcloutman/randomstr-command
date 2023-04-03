@@ -27,10 +27,23 @@ Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
 @click.option("--enforce-diversity", "-d", is_flag=True, default=False, help="Generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.")
 @click.option("--no", default=DEFAULT_DISALLOW_LIST, help="Overrides the default list of disallowed characters. Pass an empty argument to use all available characters.")
 @click.option("--also-no", default="", help="Adds characters to the disallow list without overwriting the existing disallow list. Useful for when characters need to be added to the default disallow list.")
+@click.option("--also-no-special", "-s", is_flag=True, default=False, help="Exclude all special characters.")
+@click.option("--also-no-numeric", "-m", is_flag=True, default=False, help="Exclude all numeric characters.")
+@click.option("--also-no-alpha", "-a", is_flag=True, default=False, help="Exclude all alphabet of both cases characters.")
+@click.option("--also-no-lower", "-l", is_flag=True, default=False, help="Exclude all lower case alphabet characters.")
+@click.option("--also-no-upper", "-u", is_flag=True, default=False, help="Exclude all upper case alphabet characters.")
 @click.option("--min-length", "-n", default=24, help=f"Minimum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
 @click.option("--max-length", "-x", default=24, help=f"Maximum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
 @click.option("--ruler", is_flag=True, default=False, help="Display a visual guide illustrating minimum and maximum lengths above the generated string.")
-def randomstr(rand_str_len, enforce_diversity, no, also_no, min_length, max_length, ruler):
+def randomstr(rand_str_len, enforce_diversity, no, also_no, also_no_special, also_no_numeric, also_no_alpha, also_no_lower, also_no_upper, min_length, max_length, ruler):
+    if also_no_alpha:
+        also_no_lower = True
+        also_no_upper = True
+
+    if also_no_special and also_no_lower and also_no_upper and also_no_numeric:
+        print(f"All characters are excluded. Cannot generate string.")
+        exit(1)        
+
     if (enforce_diversity and rand_str_len < 4) or min_length < 4 or max_length < 4:
         print(f"The minimum string length for diversified strings is 4.")
         exit(1)
@@ -53,11 +66,23 @@ def randomstr(rand_str_len, enforce_diversity, no, also_no, min_length, max_leng
     if rand_str_len > MAX_RAND_STR_LEN:
         print(f"The maximum allowed string length is {MAX_RAND_STR_LEN} characters.")
         exit(1)
+    
+    if also_no_special:
+        also_no += gen_special_chr_str()
+
+    if also_no_numeric:
+        also_no += gen_numeric_chr_str()
+
+    if also_no_lower:
+        also_no += gen_lower_chr_str()
+
+    if also_no_upper:
+        also_no += gen_upper_chr_str()
 
     disallow_list = str_to_unique_char_list(no + also_no)
 
     if enforce_diversity:
-        print(gen_random_diverse_str(rand_str_len, disallow_list))
+        print(gen_random_diverse_str(rand_str_len, disallow_list, no_special=also_no_special, no_lower=also_no_lower, no_upper=also_no_upper, no_numeric=also_no_numeric))
     else:
         print(gen_random_str(rand_str_len, disallow_list))
 
@@ -92,18 +117,22 @@ def gen_random_str(rand_str_len, disallow_list):
     return output
 
 
-def gen_random_diverse_str(rand_str_len, disallow_list):
+def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_upper = False, no_lower = False, no_numeric = False):
     """
-    Generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.
+    By default, generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.
     """
     attempts = 0
     while attempts < MAX_DIVERSE_STRING_ATTEMPTS:
         output = ''
         i = 0
-        has_number = False
-        has_lower = False
-        has_upper = False
-        has_special = False
+
+        """
+        These values are False by default but assigning the parameter values ensures that disallowed characters will not be generated.
+        """
+        has_number = no_numeric
+        has_lower = no_lower
+        has_upper = no_upper
+        has_special = no_special
 
         while i < rand_str_len:
             ascii_val = randbelow(94) + 33
@@ -144,6 +173,27 @@ def print_ruler(min_length, max_length):
     print(('-' * (min_length - 1)) + ('=' * ((max_length - min_length) + 1)))
 
 
+def gen_chr_sequence_str (first, last, separator=''):
+    """
+    Generates an ordered string of ASCII characters. first and last are inclusive.
+    """
+    return separator.join([chr(i) for i in range(first, (last + 1))])
+
+def gen_special_chr_str ():
+    """
+    Generates all special characters (non-whitespace, non-alphanumeric) in the lower ASCII range.
+    """
+    return gen_chr_sequence_str(33, 47) + gen_chr_sequence_str(58, 64) + gen_chr_sequence_str(91, 96) +gen_chr_sequence_str(123, 126)
+
+def gen_numeric_chr_str ():
+    return gen_chr_sequence_str(48, 57)
+
+def gen_lower_chr_str ():
+    return gen_chr_sequence_str(97, 122)
+
+def gen_upper_chr_str ():
+    return gen_chr_sequence_str(65, 90)
 # Start procedural code
 if __name__ == '__main__':
     randomstr()
+  
