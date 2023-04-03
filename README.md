@@ -1,7 +1,7 @@
 # `randomstr`: A command line password generator.
-A command line tool for generating **secure random passwords** and other cryptographically secure random strings.
+A **command line** utility for generating **secure random passwords** and other cryptographically secure random strings.
 
-This utility *does not* use the standard Python `random()` function, as the results of that function are not sufficiently random for producing difficult to produce passwords. Modifying this code to use `random()` will render `randomstr` ineffective.
+This utility *does not* use the standard Python `random()` function, as the results of that function are not sufficiently random for producing difficult-to-guess passwords. Modifying this code to use `random()` will render `randomstr` ineffective.
 
 ## Requirements to Run `randomstr`
 `randomstr` is written in Python 3. You will need a binary release of Python 3 to use this utility. The shebang assumes that you have the command `python3` available in your shell's path.
@@ -33,7 +33,7 @@ randomstr --min-length 12 --max-length 22
 ```
 
 # Caveat Non Emptor
-No password will give you 100% protection against brute force attacks, but it is hoped that this utility will decrease the probability of having your secured accounts hacked through social engineering, guessing, and brute force attacks. That being said, this is Free software, so there is no actual or implied warranty. If you find a problem, please report it as a bug on [GitHub](https://github.com/dcloutman/randomstr-command0.
+No password will give you 100% protection against brute force attacks, but it is hoped that this utility will decrease the probability of having your secured accounts hacked through social engineering, guessing, and brute force attacks. That being said, this is Free software, so there is no actual or implied warranty. If you find a problem, please report it as a bug on [GitHub](https://github.com/dcloutman/randomstr-command).
 
 
 *v0.1.0*, (c)2023 [David Cloutman](https://davidcloutman.com) under MIT License.
