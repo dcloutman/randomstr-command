@@ -24,6 +24,9 @@ Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
 
 @click.command()
 @click.argument("rand_str_len", default=DEFAULT_RAND_STR_LEN)
+@click.option("--min-length", "-n", default=24, help=f"Minimum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
+@click.option("--max-length", "-x", default=24, help=f"Maximum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
+@click.option("--allow", "-w", default=None, help=f"A string of allowed characters that will be applied after all restrictions are applied.")
 @click.option("--enforce-diversity", "-d", is_flag=True, default=False, help="Generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.")
 @click.option("--no", default=DEFAULT_DISALLOW_LIST, help="Overrides the default list of disallowed characters. Pass an empty argument to use all available characters.")
 @click.option("--also-no", default="", help="Adds characters to the disallow list without overwriting the existing disallow list. Useful for when characters need to be added to the default disallow list.")
@@ -32,10 +35,8 @@ Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
 @click.option("--also-no-alpha", "-a", is_flag=True, default=False, help="Exclude all alphabet of both cases characters.")
 @click.option("--also-no-lower", "-l", is_flag=True, default=False, help="Exclude all lower case alphabet characters.")
 @click.option("--also-no-upper", "-u", is_flag=True, default=False, help="Exclude all upper case alphabet characters.")
-@click.option("--min-length", "-n", default=24, help=f"Minimum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
-@click.option("--max-length", "-x", default=24, help=f"Maximum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
 @click.option("--ruler", is_flag=True, default=False, help="Display a visual guide illustrating minimum and maximum lengths above the generated string.")
-def randomstr(rand_str_len, enforce_diversity, no, also_no, also_no_special, also_no_numeric, also_no_alpha, also_no_lower, also_no_upper, min_length, max_length, ruler):
+def randomstr(rand_str_len, min_length, max_length, allow, enforce_diversity, no, also_no, also_no_special, also_no_numeric, also_no_alpha, also_no_lower, also_no_upper, ruler):
     if also_no_alpha:
         also_no_lower = True
         also_no_upper = True
@@ -157,12 +158,27 @@ def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_u
                     has_special = True
 
         if has_lower and has_upper and has_number and has_special:
-            return output
+            return shuffle_string(output)
     # end while
+
 
     print("The application failed to generate a diverse password. Verify that your disallow list is not too restrictive and try again.")
     exit(1) 
 
+def shuffle_string(target_string):
+    """
+    Returns a string with the contents of target_string in a random order.
+    """
+    target_list = list(target_string)
+    result = ""
+    target_list_len = len(target_list)
+    while target_list_len > 0:
+        random_index = randbelow(target_list_len)
+        result = result + target_list[random_index]
+        target_list.pop(random_index)
+        target_list_len = len(target_list)
+    
+    return result
 
 
 
@@ -181,18 +197,28 @@ def gen_chr_sequence_str (first, last, separator=''):
 
 def gen_special_chr_str ():
     """
-    Generates all special characters (non-whitespace, non-alphanumeric) in the lower ASCII range.
+    Generates a string of all special characters (non-whitespace, non-alphanumeric) in the lower ASCII range.
     """
     return gen_chr_sequence_str(33, 47) + gen_chr_sequence_str(58, 64) + gen_chr_sequence_str(91, 96) +gen_chr_sequence_str(123, 126)
 
 def gen_numeric_chr_str ():
+    """
+    Generates a string of all numeric characters.
+    """
     return gen_chr_sequence_str(48, 57)
 
 def gen_lower_chr_str ():
+    """
+    Generates a string of all lower case letters.
+    """
     return gen_chr_sequence_str(97, 122)
 
 def gen_upper_chr_str ():
+    """
+    Generates a string of all upper case letters.
+    """
     return gen_chr_sequence_str(65, 90)
+
 # Start procedural code
 if __name__ == '__main__':
     randomstr()
