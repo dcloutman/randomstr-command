@@ -36,4 +36,4 @@ randomstr --min-length 12 --max-length 22
 No password will give you 100% protection against brute force attacks, but it is hoped that this utility will decrease the probability of having your secured accounts hacked through social engineering, guessing, and brute force attacks. That being said, this is Free software, so there is no actual or implied warranty. If you find a problem, please report it as a bug on [GitHub](https://github.com/dcloutman/randomstr-command).
 
 
-*v0.1.1*, (c)2023 [David Cloutman](https://davidcloutman.com) under MIT License.
+*v0.2.0*, (c)2025 [David Cloutman](https://davidcloutman.com) under MIT License.
