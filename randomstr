@@ -8,19 +8,11 @@ from secrets import randbelow
 
 ARG_COUNT = len(sys.argv)
 DEFAULT_RAND_STR_LEN = 24
-DEFAULT_DISALLOW_LIST = ['"', "'", '`', '$', '\\', '<']
+DEFAULT_DISALLOW_LIST = ['"', "'", '`', '$', '\\', '<', '{']
+"""These characters are often disallowed from passwords in an attempt to prevent injection attacks."""
+
 NULL_DISALLOW_LIST = []
 MAX_RAND_STR_LEN = 65536
-MAX_DIVERSE_STRING_ATTEMPTS = 2048
-
-"""
-`randomstr` Help:
-Generates a random string in the lower ASCII range of 33-126. Default length is 24 characters.
-
-Usage: randomstr [str_len] [--no <string of disallowed characters>]
-
-Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
-"""
 
 @click.command()
 @click.argument("rand_str_len", default=DEFAULT_RAND_STR_LEN)
@@ -37,25 +29,45 @@ Characters disallowed by default are: {DEFAULT_DISALLOW_LIST}
 @click.option("--also-no-upper", "-u", is_flag=True, default=False, help="Exclude all upper case alphabet characters.")
 @click.option("--ruler", is_flag=True, default=False, help="Display a visual guide illustrating minimum and maximum lengths above the generated string.")
 def randomstr(rand_str_len, min_length, max_length, allow, enforce_diversity, no, also_no, also_no_special, also_no_numeric, also_no_alpha, also_no_lower, also_no_upper, ruler):
+    """Generates a random string in the lower ASCII range of 33-126. Default length is 24 characters. The following characters are disallowed by default: " ' ` $ \\ < {"""
     if also_no_alpha:
         also_no_lower = True
         also_no_upper = True
 
+    min_diverse_str_len = 4
+    if also_no_special:
+        min_diverse_str_len -= 1
+    if also_no_numeric:
+        min_diverse_str_len -= 1
+    if also_no_lower:
+        min_diverse_str_len -= 1
+    if also_no_upper:
+        min_diverse_str_len -= 1
+
     if also_no_special and also_no_lower and also_no_upper and also_no_numeric:
         print(f"All characters are excluded. Cannot generate string.")
-        exit(1)        
-
-    if (enforce_diversity and rand_str_len < 4) or min_length < 4 or max_length < 4:
-        print(f"The minimum string length for diversified strings is 4.")
         exit(1)
-    elif rand_str_len < 1:
+
+    if(min_length < 1 or max_length < 1):
+        print("Random strings must be at least one character long.")
+        exit(1)
+
+    if (enforce_diversity and rand_str_len < min_diverse_str_len):
+        print(f"The minimum string length for diversified strings is {min_diverse_str_len}.")
+        exit(1)
+
+    if rand_str_len < 1:
         print(f"The minimum string length is 1.")
         exit(1)
+
     if min_length != DEFAULT_RAND_STR_LEN or max_length != DEFAULT_RAND_STR_LEN:
         if min_length > max_length:
             print("The minimum string length must be less than or equal to maximum string length.")
             exit(1)
         else:
+            if enforce_diversity and min_length < min_diverse_str_len:
+                print(f"The minimum string length is {min_length} but the current diversity setting require a minimum length of at least {min_diverse_str_len}.")
+                exit(1)
             rand_str_len = randbelow((max_length - min_length) + 1) + min_length
             if ruler:
                 print_ruler(min_length, max_length)
@@ -67,25 +79,30 @@ def randomstr(rand_str_len, min_length, max_length, allow, enforce_diversity, no
     if rand_str_len > MAX_RAND_STR_LEN:
         print(f"The maximum allowed string length is {MAX_RAND_STR_LEN} characters.")
         exit(1)
-    
+
+    # Add special characters to disallow list.
     if also_no_special:
         also_no += gen_special_chr_str()
 
+    # Add numeric characters to disallow list.
     if also_no_numeric:
         also_no += gen_numeric_chr_str()
 
+    # Add lower case letters to disallow list.
     if also_no_lower:
         also_no += gen_lower_chr_str()
 
+    # Add upper disallow list.
     if also_no_upper:
         also_no += gen_upper_chr_str()
 
+    #Aggregate disallow list.
     disallow_list = str_to_unique_char_list(no + also_no)
 
     if enforce_diversity:
-        print(gen_random_diverse_str(rand_str_len, disallow_list, no_special=also_no_special, no_lower=also_no_lower, no_upper=also_no_upper, no_numeric=also_no_numeric))
+        print(shuffle_string(gen_random_diverse_str(rand_str_len, disallow_list, no_special=also_no_special, no_lower=also_no_lower, no_upper=also_no_upper, no_numeric=also_no_numeric)))
     else:
-        print(gen_random_str(rand_str_len, disallow_list))
+        print(shuffle_string(gen_random_str(rand_str_len, disallow_list)))
 
     exit(0)
 
@@ -122,48 +139,47 @@ def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_u
     """
     By default, generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.
     """
-    attempts = 0
-    while attempts < MAX_DIVERSE_STRING_ATTEMPTS:
-        output = ''
-        i = 0
+    output = ''
 
-        """
-        These values are False by default but assigning the parameter values ensures that disallowed characters will not be generated.
-        """
-        has_number = no_numeric
-        has_lower = no_lower
-        has_upper = no_upper
-        has_special = no_special
+    if not no_special:
+        output += gen_special_single_chr()   
+    if not no_upper:
+        output += gen_upper_single_chr()
+    if not no_lower:
+        output += gen_lower_single_chr()
+    if not no_numeric:
+        output += gen_numeric_single_chr()
 
-        while i < rand_str_len:
-            ascii_val = randbelow(94) + 33
+    output = shuffle_string(output)
 
-            # This should never happen, but if it does, fail noticably.
-            if ascii_val > 126 or ascii_val < 33:
-                raise Exception('Generated ASCII value out of range of acceptable characters.')
-                exit(1)
+    i = 0
+    rand_str_len = rand_str_len - len(output)
+    while i < rand_str_len:
+        ascii_val = randbelow(94) + 33
 
-            newchar = chr(ascii_val)
-            if not newchar in disallow_list:
-                output = output + newchar
-                i += 1
+        # This should never happen, but if it does, fail noticably.
+        if ascii_val > 126 or ascii_val < 33:
+            raise Exception('Generated ASCII value out of range of acceptable characters.')
+            exit(1)
 
-                if ascii_val >= 65 and ascii_val <= 90:
-                    has_upper = True
-                elif ascii_val >= 97 and ascii_val <= 122:
-                    has_lower = True                
-                elif ascii_val >= 48 and ascii_val <= 57:
-                    has_number = True
-                else:
-                    has_special = True
+        newchar = chr(ascii_val)
+        if not newchar in disallow_list:
+            output = output + newchar
+            i += 1
 
-        if has_lower and has_upper and has_number and has_special:
-            return shuffle_string(output)
+            if ascii_val >= 65 and ascii_val <= 90:
+                has_upper = True
+            elif ascii_val >= 97 and ascii_val <= 122:
+                has_lower = True
+            elif ascii_val >= 48 and ascii_val <= 57:
+                has_number = True
+            else:
+                has_special = True
+
+        output = shuffle_string(output)
     # end while
+    return output
 
-
-    print("The application failed to generate a diverse password. Verify that your disallow list is not too restrictive and try again.")
-    exit(1) 
 
 def shuffle_string(target_string):
     """
@@ -188,7 +204,6 @@ def print_ruler(min_length, max_length):
     """
     print(('-' * (min_length - 1)) + ('=' * ((max_length - min_length) + 1)))
 
-
 def gen_chr_sequence_str (first, last, separator=''):
     """
     Generates an ordered string of ASCII characters. first and last are inclusive.
@@ -199,27 +214,63 @@ def gen_special_chr_str ():
     """
     Generates a string of all special characters (non-whitespace, non-alphanumeric) in the lower ASCII range.
     """
-    return gen_chr_sequence_str(33, 47) + gen_chr_sequence_str(58, 64) + gen_chr_sequence_str(91, 96) +gen_chr_sequence_str(123, 126)
+    if 'special_sequence' not in  gen_special_chr_str.__dict__:
+        special_sequence = gen_chr_sequence_str(33, 47) + gen_chr_sequence_str(58, 64) + gen_chr_sequence_str(91, 96) +gen_chr_sequence_str(123, 126)
+    return special_sequence
 
 def gen_numeric_chr_str ():
     """
     Generates a string of all numeric characters.
     """
-    return gen_chr_sequence_str(48, 57)
+    if 'num_sequence' not in gen_numeric_chr_str.__dict__:
+        num_sequence = gen_chr_sequence_str(48, 57)
+    return num_sequence
 
 def gen_lower_chr_str ():
     """
     Generates a string of all lower case letters.
     """
-    return gen_chr_sequence_str(97, 122)
+    if 'lower_sequence' not in gen_lower_chr_str.__dict__:
+        lower_sequence = gen_chr_sequence_str(97, 122)
+    return lower_sequence
 
 def gen_upper_chr_str ():
     """
     Generates a string of all upper case letters.
     """
-    return gen_chr_sequence_str(65, 90)
+    if 'upper_sequence' not in gen_upper_chr_str.__dict__:
+        upper_sequence = gen_chr_sequence_str(65, 90)
+    return upper_sequence
+
+def gen_special_single_chr():
+    """Generates a single special character as a string.
+    Return: A string containing a single special character.
+    """
+    special_sequence = gen_special_chr_str()
+    return special_sequence[randbelow(len(special_sequence))]
+
+def gen_numeric_single_chr():
+    """Generates a single numeric character as a string.
+    Return: A string containing a single numeric character.
+    """
+    numeric_sequence = gen_numeric_chr_str()
+    return numeric_sequence[randbelow(len(numeric_sequence))]
+
+def gen_lower_single_chr():
+    """Generates a single lower character as a string.
+    Return: A string containing a single lower character.
+    """
+    lower_sequence = gen_lower_chr_str()
+    return lower_sequence[randbelow(len(lower_sequence))]
+
+def gen_upper_single_chr():
+    """Generates a single upper character as a string.
+    Return: A string containing a single upper character.
+    """
+    upper_sequence = gen_upper_chr_str()
+    return upper_sequence[randbelow(len(upper_sequence))]
+
 
 # Start procedural code
 if __name__ == '__main__':
     randomstr()
-  
