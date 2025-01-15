@@ -18,7 +18,7 @@ Running `randomstr --help` will display the built-in help for the utility.
 
 A standard list of commonly forbidden characters in passwords is included in the built-in disallowed characters list. You can increase the complexity of your random strings by passing an empty `--no` option. However, this will potentially cause some services to reject your password / secret as some developers wrongly believe that disallowing these characters is an adequate protection against SQL injection or XSS attacks.
 
-If you need to add additional characters to the default disallow list, use the `--also-no` option and pass a string of characters you wish to disallow. These characters will be added to the disallow list. There are several shorthand flags that complement `--also-no`. These are `--also-no-special --also-no-numeric --also-no-lower --also-no-upper`. `--also-no-alpha` is the equivalent of `--also-no-lower --also-no-upper`. Excluding all characters with these flags will result in an error.
+If you need to add additional characters to the default disallow list, use the `--also-no` option and pass a string of characters you wish to disallow. These characters will be added to the disallow list. There are several shorthand flags that complement `--also-no`. These are `--also-no-special --also-no-numeric --also-no-lower --also-no-upper`. `--also-no-alpha` is the equivalent of `--also-no-lower --also-no-upper`. Excluding all characters with these flags will result in an error unless the `--allow` flag is also used.
 
 Basic usage of this utility generates a randomized string of a length specified by the user.
 
