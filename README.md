@@ -6,9 +6,8 @@ This utility *does not* use the standard Python `random()` function, as the resu
 ## Requirements to Run `randomstr`
 `randomstr` is written in Python 3. You will need a binary release of Python 3 to use this utility. The shebang assumes that you have the command `python3` available in your shell's path.
 
-Additionally, there are dependencies on the following libraries:
+Additionally, there is a dependency on the following library:
 * Click, a command-line framework for Python
-* Secrets, a cryptographic library
 
 You will most likely want to install these features globally. Alternatively, you may use the requirements.txt file to set up a virtual environment, though this will make using the library less convenient.
 

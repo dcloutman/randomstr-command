@@ -1,5 +1,14 @@
 #! /usr/bin/env python3
-from secrets import randbelow
+from random import SystemRandom
+
+_sysrand = SystemRandom()
+
+def randbelow(exclusive_upper_bound):
+    """Return a random int in the range [0, n)."""
+    if exclusive_upper_bound <= 0:
+        raise ValueError("Upper bound must be positive.")
+    return _sysrand._randbelow(exclusive_upper_bound)
+
 
 def str_to_unique_char_list(string):
     """

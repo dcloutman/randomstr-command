@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 import click
-from secrets import randbelow
-from lib import str_to_unique_char_list, gen_special_chr_str, gen_numeric_chr_str, gen_lower_chr_str, gen_upper_chr_str, shuffle_string, gen_random_diverse_str, gen_random_str
+from lib import randbelow, str_to_unique_char_list, gen_special_chr_str, gen_numeric_chr_str, gen_lower_chr_str, gen_upper_chr_str, shuffle_string, gen_random_diverse_str, gen_random_str
 
 DEFAULT_RAND_STR_LEN = 24
 DEFAULT_DISALLOW_LIST = ['"', "'", '`', '$', '\\', '<', '{']
