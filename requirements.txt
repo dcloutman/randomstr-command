@@ -1,1 +1,2 @@
-click==8.1.8
+click==8.2.1
+pyrefly==0.18.1
