@@ -11,7 +11,7 @@ Additionally, there is a dependency on the following library:
 
 You will most likely want to install these features globally. Alternatively, you may use the requirements.txt file to set up a virtual environment, though this will make using the library less convenient.
 
-# Usage Hints
+## Usage Hints
 
 Running `randomstr --help` will display the built-in help for the utility.
 
@@ -31,8 +31,10 @@ However, you may make your password a randomized length by using the `--min-leng
 randomstr --min-length 12 --max-length 22
 ```
 
-# Caveat Non Emptor
+## Caveat Non Emptor
 No password will give you 100% protection against brute force attacks, but it is hoped that this utility will decrease the probability of having your secured accounts hacked through social engineering, guessing, and brute force attacks. That being said, this is Free software, so there is no actual or implied warranty. If you find a problem, please report it as a bug on [GitHub](https://github.com/dcloutman/randomstr-command).
 
+## Acknowledgments
+This utility integrates code originally contained in the `secrets` library. It was duplicated here to remove external dependencies that `secrets` needs for functionality that `randomstr` does not utilize. However, this utility would not have come to fruition without the development efforts of the people behind `secrets`.
 
 *v0.3.0*, (c)2025 [David Cloutman](https://davidcloutman.com) under MIT License.

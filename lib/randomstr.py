@@ -1,14 +1,21 @@
 #! /usr/bin/env python3
 from random import SystemRandom
 
-_sysrand = SystemRandom()
+_sysrand: SystemRandom = SystemRandom()
 
-def randbelow(exclusive_upper_bound):
-    """Return a random int in the range [0, n)."""
+def rand_below(exclusive_upper_bound):
+    """
+    Return a random int in the range [0, n).
+    This function was cribbed from the `secrets` library in order to eliminate its 
+    dependency on OpenSSL for features not used in `randomstr`.
+    """
     if exclusive_upper_bound <= 0:
         raise ValueError("Upper bound must be positive.")
-    return _sysrand._randbelow(exclusive_upper_bound)
-
+    
+    # The use of __ is inherited from the `secrets` library, an 
+    # implmentation that is considered secure for cryptographic use by 
+    # the Python community.
+    return _sysrand._randbelow(exclusive_upper_bound) # pyrefly: ignore
 
 def str_to_unique_char_list(string):
     """
@@ -24,7 +31,7 @@ def gen_random_str(rand_str_len, disallow_list):
     output = ''
     i = 0
     while i < rand_str_len:
-        ascii_val = randbelow(94) + 33
+        ascii_val = rand_below(94) + 33
 
         # This should never happen, but if it does, fail noticably.
         if ascii_val > 126 or ascii_val < 33:
@@ -58,7 +65,7 @@ def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_u
     i = 0
     rand_str_len = rand_str_len - len(output)
     while i < rand_str_len:
-        ascii_val = randbelow(94) + 33
+        ascii_val = rand_below(94) + 33
 
         # This should never happen, but if it does, fail noticably.
         if ascii_val > 126 or ascii_val < 33:
@@ -92,7 +99,7 @@ def shuffle_string(target_string):
     result = ""
     target_list_len = len(target_list)
     while target_list_len > 0:
-        random_index = randbelow(target_list_len)
+        random_index = rand_below(target_list_len)
         result = result + target_list[random_index]
         target_list.pop(random_index)
         target_list_len = len(target_list)
@@ -148,7 +155,7 @@ def gen_special_single_chr():
     Return: A string containing a single special character.
     """
     special_sequence = gen_special_chr_str()
-    return special_sequence[randbelow(len(special_sequence))]
+    return special_sequence[rand_below(len(special_sequence))]
 
 
 def gen_numeric_single_chr():
@@ -156,7 +163,7 @@ def gen_numeric_single_chr():
     Return: A string containing a single numeric character.
     """
     numeric_sequence = gen_numeric_chr_str()
-    return numeric_sequence[randbelow(len(numeric_sequence))]
+    return numeric_sequence[rand_below(len(numeric_sequence))]
 
 
 def gen_lower_single_chr():
@@ -164,7 +171,7 @@ def gen_lower_single_chr():
     Return: A string containing a single lower character.
     """
     lower_sequence = gen_lower_chr_str()
-    return lower_sequence[randbelow(len(lower_sequence))]
+    return lower_sequence[rand_below(len(lower_sequence))]
 
 
 def gen_upper_single_chr():
@@ -172,4 +179,4 @@ def gen_upper_single_chr():
     Return: A string containing a single upper character.
     """
     upper_sequence = gen_upper_chr_str()
-    return upper_sequence[randbelow(len(upper_sequence))]
+    return upper_sequence[rand_below(len(upper_sequence))]
