@@ -3,7 +3,7 @@ from random import SystemRandom
 
 _sysrand: SystemRandom = SystemRandom()
 
-def rand_below(exclusive_upper_bound):
+def rand_below(exclusive_upper_bound: int) -> int:
     """
     Return a random int in the range [0, n).
     This function was cribbed from the `secrets` library in order to eliminate its 
@@ -45,11 +45,11 @@ def gen_random_str(rand_str_len, disallow_list):
     return output
 
 
-def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_upper = False, no_lower = False, no_numeric = False):
+def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_upper = False, no_lower = False, no_numeric = False, diversify_from_allow = False, allow=''):
     """
     By default, generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.
     """
-    output = ''
+    output: str = ''
 
     if not no_special:
         output += gen_special_single_chr()   
@@ -59,6 +59,9 @@ def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_u
         output += gen_lower_single_chr()
     if not no_numeric:
         output += gen_numeric_single_chr()
+    if diversify_from_allow and len(allow) > 0:
+        # If the user has specified an allow list, we will use it to diversify the string.
+        output += gen_single_chr_from_string(allow)
 
     output = shuffle_string(output)
 
@@ -77,17 +80,9 @@ def gen_random_diverse_str(rand_str_len, disallow_list, no_special = False, no_u
             output = output + newchar
             i += 1
 
-            if ascii_val >= 65 and ascii_val <= 90:
-                has_upper = True
-            elif ascii_val >= 97 and ascii_val <= 122:
-                has_lower = True
-            elif ascii_val >= 48 and ascii_val <= 57:
-                has_number = True
-            else:
-                has_special = True
-
+        # Shuffle on every iteration to ensure random order.
         output = shuffle_string(output)
-    # end while
+
     return output
 
 
@@ -174,9 +169,20 @@ def gen_lower_single_chr():
     return lower_sequence[rand_below(len(lower_sequence))]
 
 
-def gen_upper_single_chr():
+def gen_upper_single_chr() -> str:
     """Generates a single upper character as a string.
     Return: A string containing a single upper character.
     """
     upper_sequence = gen_upper_chr_str()
     return upper_sequence[rand_below(len(upper_sequence))]
+
+def gen_single_chr_from_string(character_string) -> str:
+    """Generates a single character from a given string.
+    Parameters:
+        character_string (str): The string from which to select a single character.
+    Return: A string containing a single character from the input string.
+    """
+    if not character_string:
+        raise ValueError("`character_string` must not be empty.")
+    
+    return character_string[rand_below(len(character_string))]

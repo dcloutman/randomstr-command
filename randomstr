@@ -12,7 +12,8 @@ MAX_RAND_STR_LEN = 65536
 @click.option("--min-length", "-n", default=24, help=f"Minimum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
 @click.option("--max-length", "-x", default=24, help=f"Maximum length of the generated string. Defaults to {DEFAULT_RAND_STR_LEN}.")
 @click.option("--allow", "-w", default=None, help=f"A string of allowed characters that will be applied after all restrictions are applied.")
-@click.option("--enforce-diversity", "-d", is_flag=True, default=False, help="Generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.")
+@click.option("--enforce-diversity", "-d", default=False, is_flag=True, help="Generates a ramdom string that has a lower case letter, an upper case letter, a number, and a non alpha-numeric character.")
+@click.option("--diversify-from-allow", "-D", default=False, is_flag=True, help="When used with --enforce-diversity, the string will includ at least one of the characters listed in `--allow`.")
 @click.option("--no", default=DEFAULT_DISALLOW_LIST, help="Overrides the default list of disallowed characters. Pass an empty argument to use all available characters.")
 @click.option("--also-no", default="", help="Adds characters to the disallow list without overwriting the existing disallow list. Useful for when characters need to be added to the default disallow list.")
 @click.option("--also-no-special", "-s", is_flag=True, default=False, help="Exclude all special characters.")
@@ -21,7 +22,8 @@ MAX_RAND_STR_LEN = 65536
 @click.option("--also-no-lower", "-l", is_flag=True, default=False, help="Exclude all lower case alphabet characters.")
 @click.option("--also-no-upper", "-u", is_flag=True, default=False, help="Exclude all upper case alphabet characters.")
 @click.option("--ruler", is_flag=True, default=False, help="Display a visual guide illustrating minimum and maximum lengths above the generated string.")
-def randomstr(rand_str_len, min_length, max_length, allow, enforce_diversity, no, also_no, also_no_special, also_no_numeric, also_no_alpha, also_no_lower, also_no_upper, ruler):
+@click.option("--silent", is_flag=True, default=False, help="Suppress warnings and non-essential output.")
+def randomstr(rand_str_len, min_length, max_length, allow, enforce_diversity, diversify_from_allow, no, also_no, also_no_special, also_no_numeric, also_no_alpha, also_no_lower, also_no_upper, ruler, silent):
     """Generates a random string in the lower ASCII range of 33-126. Default length is 24 characters. The following characters are disallowed by default: " ' ` $ \\ < {"""
     if also_no_alpha:
         also_no_lower = True
@@ -36,6 +38,8 @@ def randomstr(rand_str_len, min_length, max_length, allow, enforce_diversity, no
         min_diverse_str_len -= 1
     if also_no_upper:
         min_diverse_str_len -= 1
+    if allow and diversify_from_allow:
+        min_diverse_str_len += 1
 
     if also_no_special and also_no_lower and also_no_upper and also_no_numeric and allow is None:
         print(f"All characters are excluded. Cannot generate string.")
@@ -96,8 +100,12 @@ def randomstr(rand_str_len, min_length, max_length, allow, enforce_diversity, no
     if not allow is None:
         disallow_list = str(set(disallow_list) - set(allow))
 
+    # Warn if diversify-from-allow is set without enforce-diversity
+    if diversify_from_allow and not enforce_diversity and not silent:
+        print("Warning: --diversify-from-allow was set, but --enforce-diversity was not. The generated string may or may not contain any characters from the allow list.")
+
     if enforce_diversity:
-        print(shuffle_string(gen_random_diverse_str(rand_str_len, disallow_list, no_special=also_no_special, no_lower=also_no_lower, no_upper=also_no_upper, no_numeric=also_no_numeric)))
+        print(shuffle_string(gen_random_diverse_str(rand_str_len, disallow_list, no_special=also_no_special, no_lower=also_no_lower, no_upper=also_no_upper, no_numeric=also_no_numeric, allow=allow, diversify_from_allow=diversify_from_allow)))
     else:
         print(shuffle_string(gen_random_str(rand_str_len, disallow_list)))
 

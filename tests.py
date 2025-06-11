@@ -1,5 +1,5 @@
 import unittest
-from lib import rand_below
+from lib import rand_below, gen_single_chr_from_string
 
 class TestRandBelow(unittest.TestCase):
     def test_random_num_is_in_range(self):
@@ -14,6 +14,20 @@ class TestRandBelow(unittest.TestCase):
             if n == first_num:
                 num_times_first_num_repeated += 1
         self.assertNotEqual(num_times_first_num_repeated, 5)
+
+class TestGenSingleChrFromString(unittest.TestCase):
+    def test_empty_string_raises_exception(self):
+        with self.assertRaises(Exception):
+            gen_single_chr_from_string("")
+
+    def test_single_character_returns_that_character(self):
+        self.assertEqual(gen_single_chr_from_string("A"), "A")
+
+    def test_multiple_characters_returns_one_of_them(self):
+        result = gen_single_chr_from_string("ABC")
+        self.assertIn(result, ["A", "B", "C"])
+        self.assertEqual(len(result), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
